@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -26,7 +27,7 @@ func Normalize(str string) string {
 // collecting user input and cleaning it up.
 type Scanner struct {
 	*bufio.Scanner
-	more bool
+	done bool
 }
 
 // NewScanner returns a Scanner of the supplied reader.
@@ -35,12 +36,13 @@ func NewScanner(r io.Reader) *Scanner {
 }
 
 func (s *Scanner) Scan() bool {
-	s.more = s.Scanner.Scan()
-	return s.more
+	more := s.Scanner.Scan()
+	s.done = !more
+	return more
 }
 
 func (s *Scanner) More() bool {
-	return s.more
+	return !s.done
 }
 
 // Line reads a line from the scanner and trims the whitespace around it.
@@ -51,6 +53,24 @@ func (s *Scanner) Line() (string, error) {
 	}
 	result := s.Text()
 	result = strings.TrimSpace(result)
+	return result, nil
+}
+
+// LineInts reads a line of integers separated by commas
+func (s *Scanner) IntLine() ([]int, error) {
+	line, err := s.Line()
+	if err != nil {
+		return nil, err
+	}
+	intStrs := strings.Split(line, ",")
+	var result []int
+	for _, n := range intStrs {
+		num, err := strconv.Atoi(n)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, num)
+	}
 	return result, nil
 }
 
